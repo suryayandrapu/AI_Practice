@@ -1,0 +1,181 @@
+import os
+import shutil
+import tempfile
+import streamlit as st
+from pdfminer.high_level import extract_text
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain.chains import RetrievalQA
+from langchain.schema import Document
+import httpx
+import tiktoken
+import numpy as np
+
+# Token caching directory
+tiktoken_cache_dir = "./token"
+os.environ["TIKTOKEN_CACHE_DIR"] = tiktoken_cache_dir
+
+# Disable SSL verification for internal API
+client = httpx.Client(verify=False)
+
+# Initialize LLM and Embeddings
+llm = ChatOpenAI(
+    base_url="https://genailab.tcs.in",
+    model="azure_ai/genailab-maas-DeepSeek-V3-0324",
+    api_key="sk-CTFeGzi80z5zvDgk6meY7g",
+    http_client=client
+)
+
+embedding_model = OpenAIEmbeddings(
+    base_url="https://genailab.tcs.in",
+    model="azure/genailab-maas-text-embedding-3-large",
+    api_key="sk-CTFeGzi80z5zvDgk6meY7g",
+    http_client=client
+)
+
+# Streamlit UI setup
+st.set_page_config(page_title="Life Sciences RAG Assistant")
+st.title("Life Sciences Research Paper Summarization and Query Agent")
+
+# File uploader for multiple PDFs
+uploaded_files = st.file_uploader(
+    " Upload one or more research papers (PDFs)", type="pdf", accept_multiple_files=True
+)
+
+# Initialize session state
+if "rag_chain" not in st.session_state:
+    st.session_state.rag_chain = None
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+if "user_query" not in st.session_state:
+    st.session_state.user_query = ""
+if "summary_generated" not in st.session_state:
+    st.session_state.summary_generated = False
+if "summary_text" not in st.session_state:
+    st.session_state.summary_text = ""
+
+# Show Run button only after files are uploaded
+if uploaded_files:
+    st.markdown("### Files uploaded successfully. Click below to process:")
+    if st.button("Generate Summary"):
+        # Clear previous Chroma index
+        if os.path.exists("./chroma_index"):
+            shutil.rmtree("./chroma_index")
+
+        all_documents = []
+        relevant_files = []
+        non_relevant_files = []
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=300)
+
+        for uploaded_file in uploaded_files:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+                temp_file.write(uploaded_file.read())
+                temp_file_path = temp_file.name
+
+            try:
+                text = extract_text(temp_file_path)
+            except Exception as e:
+                st.error(f"Failed to extract text from {uploaded_file.name}: {e}")
+                continue
+
+            # Quick relevance check
+            if any(keyword in text.lower() for keyword in ["biology", "biomedical", "genome", "protein", "clinical", "pharma", "neuroscience", "biotech", "life science"]):
+                relevant_files.append(uploaded_file.name)
+                chunks = text_splitter.split_text(text)
+                for chunk in chunks:
+                    doc = Document(page_content=chunk, metadata={"source": uploaded_file.name})
+                    all_documents.append(doc)
+            else:
+                non_relevant_files.append(uploaded_file.name)
+
+        # Warn about non-relevant files
+        if non_relevant_files:
+            st.warning(f"The following files are not related to life sciences and were skipped:\n\n- " + "\n- ".join(non_relevant_files))
+
+        if not all_documents:
+            st.error("No relevant life sciences documents found. Please upload valid papers.")
+            st.stop()
+
+        with st.spinner(" Indexing relevant documents..."):
+            vectordb = Chroma.from_documents(all_documents, embedding_model, persist_directory="./chroma_index")
+            vectordb.persist()
+            retriever = vectordb.as_retriever(search_type="similarity", search_kwargs={"k": 5})
+
+            st.session_state.rag_chain = RetrievalQA.from_chain_type(
+                llm=llm,
+                retriever=retriever,
+                return_source_documents=True
+            )
+
+        # Summarization
+        summary_prompt = (
+            "Summarize the combined content of these life sciences research papers. Focus on:\n"
+            "- Key findings\n"
+            "- Methodologies used\n"
+            "- Experimental results\n"
+            "- Implications for future research"
+        )
+
+        with st.spinner("Generating summary..."):
+            summary_result = st.session_state.rag_chain.invoke(summary_prompt)
+            st.session_state.summary_text = summary_result["result"]
+            st.session_state.summary_generated = True
+
+# Show summary and enable Q&A
+if st.session_state.summary_generated:
+    st.subheader("Combined Summary")
+    st.write(st.session_state.summary_text)
+
+    st.subheader("Ask questions about the uploaded papers")
+
+    def handle_query():
+        query = st.session_state.user_query.strip()
+        if query:
+            with st.spinner("Retrieving answer..."):
+                response = st.session_state.rag_chain.invoke(query)
+                st.session_state.chat_history.append({
+                    "question": query,
+                    "rag_answer": response["result"],
+                    "human_answer": "",
+                    "accuracy": None
+                })
+            st.session_state.user_query = ""  # Reset input safely
+
+    st.text_input(
+        "Type your question here...",
+        key="user_query",
+        on_change=handle_query
+    )
+
+    # Display all Q&A history and allow human answer input
+    if st.session_state.chat_history:
+        st.subheader(" Conversation History & Accuracy")
+        for i, qa in enumerate(st.session_state.chat_history, 1):
+            st.markdown(f"**Q{i}: {qa['question']}**")
+            st.markdown(f"**RAG Answer:** {qa['rag_answer']}")
+
+            # Human answer input
+            human_key = f"human_answer_{i}"
+            if human_key not in st.session_state:
+                st.session_state[human_key] = qa["human_answer"]
+
+            st.text_area(
+                f"Your answer for Q{i}",
+                key=human_key,
+                value=st.session_state[human_key],
+                height=100
+            )
+
+            # Compare answers if human answer is provided
+            if st.session_state[human_key].strip():
+                rag_embedding = embedding_model.embed_query(qa["rag_answer"])
+                human_embedding = embedding_model.embed_query(st.session_state[human_key])
+                cosine_sim = np.dot(rag_embedding, human_embedding) / (
+                    np.linalg.norm(rag_embedding) * np.linalg.norm(human_embedding)
+                )
+                accuracy = round(cosine_sim * 100, 2)
+                st.session_state.chat_history[i - 1]["accuracy"] = accuracy
+                st.success(f"Accuracy Score: {accuracy}%")
+
+            st.markdown("---")
