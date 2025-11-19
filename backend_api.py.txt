@@ -1,0 +1,21 @@
+﻿# backend/api.py
+
+from fastapi import FastAPI, UploadFile, File
+from rag_logic import process_pdfs, ask_question
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Query(BaseModel):
+    question: str
+
+@app.post('/upload_pdfs')
+async def upload(files: list[UploadFile] = File(...)):
+    file_data = [await f.read() for f in files]
+    result = process_pdfs(file_data)
+    return {'message': result}
+
+@app.post('/ask')
+def ask_rag(query: Query):
+    result = ask_question(query.question)
+    return {'answer': result}

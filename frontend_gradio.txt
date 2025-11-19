@@ -1,0 +1,32 @@
+﻿# frontend/gradio_ui.py
+
+import gradio as gr
+import requests
+
+FASTAPI_URL = "http://127.0.0.1:8000"
+
+def upload_files(files):
+    files_dict = [('files', (f.name, f.read(), 'application/pdf')) for f in files]
+    res = requests.post(f"{FASTAPI_URL}/upload_pdfs", files=files_dict)
+    return res.json()["message"]
+
+def ask_query(question):
+    res = requests.post(f"{FASTAPI_URL}/ask", json={'question': question})
+    return res.json().get('answer', 'Error')
+
+with gr.Blocks() as demo:
+    gr.Markdown("# 🔬 Life Sciences RAG Assistant (FastAPI + Gradio)")
+
+    with gr.Tab("📁 Upload PDFs"):
+        file_input = gr.File(type='file', file_count='multiple')
+        upload_btn = gr.Button("Process PDFs")
+        upload_output = gr.Textbox(label="Status")
+        upload_btn.click(upload_files, inputs=file_input, outputs=upload_output)
+
+    with gr.Tab("❓ Ask RAG"):
+        q_input = gr.Textbox(label="Ask a question")
+        ask_btn = gr.Button("Ask")
+        ans_output = gr.Textbox(label="Answer")
+        ask_btn.click(ask_query, inputs=q_input, outputs=ans_output)
+
+demo.launch()

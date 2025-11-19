@@ -1,0 +1,67 @@
+﻿# backend/rag_logic.py
+
+import os
+import shutil
+import tempfile
+from pdfminer.high_level import extract_text
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain.chains import RetrievalQA
+from langchain.schema import Document
+import httpx
+
+client = httpx.Client(verify=False)
+
+llm = ChatOpenAI(
+    base_url="https://genailab.tcs.in",
+    model="azure_ai/genailab-maas-DeepSeek-V3-0324",
+    api_key="sk-XXXX",       # Replace with actual API key
+    http_client=client
+)
+
+embedding_model = OpenAIEmbeddings(
+    base_url="https://genailab.tcs.in",
+    model="azure/genailab-maas-text-embedding-3-large",
+    api_key="sk-XXXX",       # Replace with actual API key
+    http_client=client
+)
+
+rag_chain = None
+
+def process_pdfs(files):
+    global rag_chain
+    all_docs = []
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=300)
+
+    for file in files:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp:
+            temp.write(file)
+            file_path = temp.name
+
+        try:
+            text = extract_text(file_path)
+        except:
+            continue
+
+        if any(k in text.lower() for k in ["biology", "clinical", "genome", "protein"]):
+            chunks = splitter.split_text(text)
+            for c in chunks:
+                all_docs.append(Document(page_content=c))
+
+    if not all_docs:
+        return "No relevant documents found."
+
+    if os.path.exists('./chroma_index'):
+        shutil.rmtree('./chroma_index')
+
+    vectordb = Chroma.from_documents(all_docs, embedding_model, './chroma_index')
+    retriever = vectordb.as_retriever(search_kwargs={'k': 4})
+    rag_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
+
+    return "RAG Chain Built Successfully"
+
+def ask_question(query: str):
+    if rag_chain is None:
+        return "⚠ Upload PDF first!"
+    return rag_chain.invoke(query)["result"]
