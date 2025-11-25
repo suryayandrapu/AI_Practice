@@ -1,0 +1,8 @@
+streamlit
+pyautogen
+python-dotenv
+pydante
+httpx
+langchain
+langchain-core
+chroma
