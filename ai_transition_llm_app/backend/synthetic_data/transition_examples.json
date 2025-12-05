@@ -1,0 +1,129 @@
+{
+  "transition_lifecycle_phases": [
+    {
+      "phase": "Discovery",
+      "activities": [
+        "Inventory of applications/components",
+        "Understanding upstream/downstream dependencies",
+        "Stakeholder mapping",
+        "Baseline risk identification"
+      ],
+      "common_pitfalls": [
+        "Dependencies missed during early mapping",
+        "Incomplete application inventory",
+        "SME availability underestimated"
+      ]
+    },
+    {
+      "phase": "Knowledge Transfer (KT)",
+      "activities": [
+        "High-level functional walkthroughs",
+        "System-level KT",
+        "Hands-on environment-based KT",
+        "Documentation review",
+        "Clarifications loop"
+      ],
+      "common_pitfalls": [
+        "Rushed sessions due to SME overload",
+        "Documentation mismatch between teams",
+        "KT not aligned with future support model"
+      ]
+    },
+    {
+      "phase": "Shadow Support",
+      "activities": [
+        "KT recipients execute daily support tasks under SME monitoring",
+        "Mock runs for incidents",
+        "Monitoring key transactions and batch jobs"
+      ],
+      "common_pitfalls": [
+        "Team not ready for real incident handling",
+        "Limited access to monitoring tools",
+        "Insufficient logging knowledge"
+      ]
+    },
+    {
+      "phase": "Transition & Go-Live",
+      "activities": [
+        "Ownership handover",
+        "Hypercare window",
+        "Tracking SLAs and issue patterns",
+        "Stabilization"
+      ],
+      "common_pitfalls": [
+        "Go-live without shadow readiness",
+        "Unresolved dependencies emerging late",
+        "Lack of capacity planning"
+      ]
+    }
+  ],
+
+  "kt_effectiveness_indicators": [
+    "Ability to independently run system walkthroughs",
+    "Quality of clarifications & depth of questions",
+    "Completion of hands-on exercises",
+    "Confidence score from shadow readiness assessments",
+    "Ability to handle mock incidents",
+    "Documentation reusability score"
+  ],
+
+  "readiness_score_benchmarks": {
+    "high_readiness": "Score above 80 indicates team can handle shadow support independently.",
+    "medium_readiness": "Score between 60–80 indicates partial readiness with gaps.",
+    "low_readiness": "Score below 60 indicates insufficient exposure and high risk."
+  },
+
+  "sample_dependency_patterns": [
+    {
+      "pattern": "Application depends on upstream API + downstream batch consumer",
+      "risk": "Any API delay impacts batch execution window",
+      "mitigation": "Introduce dependency SLA matrix & early contract testing"
+    },
+    {
+      "pattern": "Database read replicas used for reporting workloads",
+      "risk": "Incorrect access permissions block KT on reporting workflows",
+      "mitigation": "Pre-provision read-only access ahead of KT"
+    }
+  ],
+
+  "escalation_examples": [
+    {
+      "situation": "SMEs repeatedly unavailable for KT sessions",
+      "escalation_path": "KT Lead → Program Manager → Customer Delivery Head"
+    },
+    {
+      "situation": "Environment access tickets not approved after SLA",
+      "escalation_path": "Transition Lead → Environment Manager → Infra Director"
+    }
+  ],
+
+  "shadow_support_examples": [
+    {
+      "task": "Handling a failed payment transaction",
+      "expected_actions": [
+        "Check logs via monitoring dashboard",
+        "Validate upstream API response codes",
+        "Cross-check batch job timestamp",
+        "Raise Incident with correct priority"
+      ]
+    },
+    {
+      "task": "Investigating a batch job failure",
+      "expected_actions": [
+        "Examine error logs",
+        "Check DB triggers and cron execution",
+        "Verify dependencies on upstream inputs",
+        "Escalate according to incident matrix"
+      ]
+    }
+  ],
+
+  "transition_success_factors": [
+    "Early identification of dependencies",
+    "High SME engagement during KT",
+    "Consistent documentation practices",
+    "Environment readiness before hands-on sessions",
+    "Clear escalation pathways",
+    "Strong collaboration between customer and offshore teams"
+  ]
+}

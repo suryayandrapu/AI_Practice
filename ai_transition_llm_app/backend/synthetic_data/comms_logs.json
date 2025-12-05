@@ -1,0 +1,66 @@
+{
+  "stakeholder_alignment": [
+    {
+      "issue": "Different interpretations of transition scope between customer architect team and delivery team.",
+      "impact": "Misaligned expectations on KT depth and milestone readiness.",
+      "evidence": "Customer architect refers to 'end-to-end functional walkthrough', but delivery team prepared only system-level KT notes."
+    },
+    {
+      "issue": "Unclear ownership for environment access approvals.",
+      "impact": "Delays in hands-on KT and application walkthroughs.",
+      "evidence": "Multiple emails sent to environment ops team with no confirmed approver."
+    }
+  ],
+
+  "communication_cadence": [
+    {
+      "observation": "Daily syncs happening inconsistently between offshore and customer SMEs.",
+      "impact": "Knowledge gaps not closed in time; backlog of unanswered queries.",
+      "evidence": "Offshore team reported 15 pending KT clarifications due to missing SME availability."
+    },
+    {
+      "observation": "Escalation process not clearly defined for missing SME attendance.",
+      "impact": "Critical dependencies pushed forward by 4–5 days.",
+      "evidence": "Program manager escalated only after repeated follow-ups."
+    }
+  ],
+
+  "documentation_quality": [
+    {
+      "issue": "KT notes shared via email attachments instead of centralized Confluence space.",
+      "impact": "Version mismatch and outdated KT content increasing rework.",
+      "evidence": "Two versions of 'Batch Jobs Overview' documents identified."
+    },
+    {
+      "issue": "No formal sign-off checkpoints for reviewed documents.",
+      "impact": "Delivery team unclear on what is approved vs draft.",
+      "evidence": "Customer lead verbally approved changes but no documentation updated."
+    }
+  ],
+
+  "collaboration_patterns": [
+    {
+      "pattern": "Onshore SMEs overloaded with BAU + transition KT.",
+      "impact": "Slower response times & rushed KT sessions.",
+      "evidence": "Average response SLA increased from 6 hours to 18 hours."
+    },
+    {
+      "pattern": "Offshore team asking repeated clarifications due to lack of visual documentation.",
+      "impact": "High rework cycles on functional process understanding.",
+      "evidence": "Similar queries asked across teams due to missing sequence diagrams."
+    }
+  ],
+
+  "alerts": [
+    {
+      "alert": "Cross-functional dependencies (DB, Network, Middleware) not visible in KT tracker.",
+      "impact": "Risk of major delays during environment provisioning & E2E testing.",
+      "priority": "High"
+    },
+    {
+      "alert": "No shared channel bridging customer architects and offshore dev team.",
+      "impact": "Information propagation delay → 1–2 day lag per clarification.",
+      "priority": "Medium"
+    }
+  ]
+}

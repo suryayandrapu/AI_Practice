@@ -1,0 +1,137 @@
+{
+  "transition_risks": [
+    {
+      "risk_id": "TR-001",
+      "title": "KT Sessions Getting Rescheduled Due to SME Bandwidth",
+      "severity": "High",
+      "likelihood": "High",
+      "impact": "Delays Wave-1 KT completion and affects shadow readiness.",
+      "root_cause": "Onshore SMEs managing BAU + transition load without backup.",
+      "affected_areas": ["KT Delivery", "Documentation Quality", "Timeline"],
+      "early_indicators": [
+        "Repeated SME cancellations",
+        "KT tracker showing stagnation",
+        "Increase in pending clarifications"
+      ],
+      "recommended_mitigation": [
+        "Introduce secondary SMEs for load balancing.",
+        "Define strict KT acceptance criteria and freeze session calendar.",
+        "Move low-complexity KT topics to recorded walkthroughs."
+      ]
+    },
+    {
+      "risk_id": "TR-002",
+      "title": "Environment Access Delays",
+      "severity": "High",
+      "likelihood": "Medium",
+      "impact": "Hands-on KT blocked; shadow phase may slip by 5–7 days.",
+      "root_cause": "Firewall rule approvals pending; ticket delays.",
+      "affected_areas": ["Environment Readiness", "Hands-on KT", "Shadow Phase"],
+      "early_indicators": [
+        "Pending tickets older than SLA",
+        "No single owner for access approvals"
+      ],
+      "recommended_mitigation": [
+        "Escalate to environment leadership.",
+        "Add approver mapping to the KT readiness tracker.",
+        "Enable temporary controlled access for walkthroughs."
+      ]
+    },
+    {
+      "risk_id": "TR-003",
+      "title": "Inconsistent Documentation Quality",
+      "severity": "Medium",
+      "likelihood": "High",
+      "impact": "High rework during transition; shadow handover becomes error-prone.",
+      "root_cause": "Documentation shared over email, not standardized.",
+      "affected_areas": ["Documentation", "Knowledge Transfer", "Shadow Support"],
+      "early_indicators": [
+        "Multiple outdated versions of same document",
+        "No SME sign-off checkpoints"
+      ],
+      "recommended_mitigation": [
+        "Centralize documentation in Confluence.",
+        "Introduce mandatory SME approval workflow.",
+        "Add visual diagrams for functional flows."
+      ]
+    },
+    {
+      "risk_id": "TR-004",
+      "title": "Dependency Mapping Not Fully Captured",
+      "severity": "Medium",
+      "likelihood": "Medium",
+      "impact": "E2E testing readiness unclear; transition planning may require re-baselining.",
+      "root_cause": "Upstream/downstream systems not identified early.",
+      "affected_areas": ["Integration", "E2E Testing", "Timeline"],
+      "early_indicators": [
+        "Teams raising last-minute dependency queries",
+        "Missing entries in dependency register"
+      ],
+      "recommended_mitigation": [
+        "Run an accelerated dependency workshop with customer architects.",
+        "Track each dependency owner in the RAID log.",
+        "Update KT plan with dependency-specific sessions."
+      ]
+    },
+    {
+      "risk_id": "TR-005",
+      "title": "Shadow Support Team Not Ready",
+      "severity": "High",
+      "likelihood": "Low",
+      "impact": "Extended hypercare, customer dissatisfaction, increased transition costs.",
+      "root_cause": "KT depth varies; lack of hands-on access.",
+      "affected_areas": ["Shadow Support", "KT Delivery", "Customer Satisfaction"],
+      "early_indicators": [
+        "Low confidence scores in KT feedback",
+        "Team unable to replicate SME walkthrough steps"
+      ],
+      "recommended_mitigation": [
+        "Conduct targeted deep-dive refreshers.",
+        "Validate readiness via scenario-based mock runs.",
+        "Run proto-shadow exercises before go-live."
+      ]
+    }
+  ],
+
+  "operational_risks": [
+    {
+      "risk_id": "OP-101",
+      "title": "CR Queue Backlog Delaying Environment Updates",
+      "severity": "Medium",
+      "likelihood": "High",
+      "impact": "Build deployments delayed by 2–3 days per cycle.",
+      "root_cause": "Infra team under-resourced; approvals slow.",
+      "recommended_mitigation": [
+        "Prioritize transition-related CRQs.",
+        "Create a fast-track SLA for transition tickets."
+      ]
+    },
+    {
+      "risk_id": "OP-102",
+      "title": "Monitoring Gaps in Batch Jobs",
+      "severity": "High",
+      "likelihood": "Medium",
+      "impact": "High probability of missing critical failures during hypercare.",
+      "root_cause": "Monitoring console access not fully provisioned.",
+      "recommended_mitigation": [
+        "Enable limited access for shadow team.",
+        "Document monitoring flow and exception patterns."
+      ]
+    }
+  ],
+
+  "compliance_risks": [
+    {
+      "risk_id": "CO-201",
+      "title": "PII Data Handling Not Formalized in KT",
+      "severity": "High",
+      "likelihood": "Low",
+      "impact": "Potential compliance breach during shadow support.",
+      "root_cause": "Lack of dedicated KT on data-handling guidelines.",
+      "recommended_mitigation": [
+        "Include GDPR-compliant handling guidelines in KT pack.",
+        "Conduct a dedicated session with InfoSec SME."
+      ]
+    }
+  ]
+}

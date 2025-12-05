@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Transition Management & Risk Tracking Agent</title>
+
+  <style>
+    body.dark { background-color: #0d1117; color: #e6edf3; }
+    body.light { background-color: #ffffff; color: #000000; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .layout {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* STATIC SIDEBAR */
+    .sidebar {
+      width: 25%;
+      background-color: #161b22;
+      padding: 25px;
+      border-right: 1px solid #30363d;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    body.light .sidebar {
+      background-color: #f3f3f3;
+      border-right: 1px solid #ccc;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 10px 0;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #30363d;
+      background-color: #0d1117;
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    body.light select, body.light textarea {
+      background: white;
+      color: black;
+      border-color: #ccc;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    .btn {
+      width: 100%;
+      background-color: #1f6feb;
+      color: white;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 25px;
+      margin-top: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .btn.secondary {
+      background-color: #30363d;
+    }
+
+    .btn:hover {
+      background-color: #388bfd;
+    }
+
+    .btn.secondary:hover {
+      background-color: #4b5563;
+    }
+
+    .main {
+      flex-grow: 1;
+      padding: 24px 30px;
+      overflow-y: auto;
+      background-color: #0d1117;
+    }
+
+    body.light .main {
+      background-color: #ffffff;
+    }
+
+    .error-message {
+      color: #ff6b6b;
+      font-size: 0.8rem;
+      margin-top: 10px;
+      min-height: 1.2em;
+    }
+
+    /* SIDE BY SIDE OUTPUT */
+    .result-container {
+      display: flex;
+      gap: 20px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    .result-box {
+      flex: 1;
+      min-width: 260px;
+      background-color: #0d1117;
+      border: 1px solid #30363d;
+      padding: 16px;
+      border-radius: 10px;
+    }
+
+    body.light .result-box {
+      background: #f3f3f3;
+      border: 1px solid #ccc;
+      color: black;
+    }
+
+    .result-box h2 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1rem;
+      color: #58a6ff;
+    }
+
+    body.light .result-box h2 {
+      color: #1f2937;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      font-size: 0.85rem;
+      margin: 0;
+    }
+
+    .section-title {
+      margin-top: 24px;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+      color: #58a6ff;
+    }
+
+    body.light .section-title {
+      color: #1f2937;
+    }
+
+    /* WORKFLOW RESULTS */
+    .workflow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    /* CHATBOT BUTTON */
+    #chatbotButton {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      background-color: #1f6feb;
+      color: white;
+      border: none;
+      font-size: 30px;
+      cursor: pointer;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    #chatWindow {
+      position: fixed;
+      bottom: 100px;
+      right: 25px;
+      width: 350px;
+      height: 450px;
+      background-color: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1000;
+    }
+
+    body.light #chatWindow {
+      background: #ffffff;
+      border-color: #ccc;
+    }
+
+    #chatHeader {
+      background: #1f6feb;
+      padding: 12px;
+      color: white;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    #chatBody {
+      flex-grow: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 0.8rem;
+    }
+
+    .msg-user {
+      text-align: right;
+      margin: 6px;
+      padding: 8px 10px;
+      background: #238636;
+      color: white;
+      border-radius: 10px;
+      max-width: 80%;
+      margin-left: auto;
+    }
+
+    .msg-bot {
+      text-align: left;
+      margin: 6px;
+      padding: 8px 10px;
+      background: #30363d;
+      color: white;
+      border-radius: 10px;
+      max-width: 80%;
+    }
+
+    body.light .msg-bot {
+      background: #dcdcdc;
+      color: black;
+    }
+
+    #chatInputArea {
+      padding: 10px;
+      display: flex;
+      gap: 6px;
+    }
+
+    #chatMessage {
+      flex-grow: 1;
+      padding: 8px;
+      background: #0d1117;
+      color: white;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+    }
+
+    body.light #chatMessage {
+      background: white;
+      color: black;
+      border-color: #ccc;
+    }
+
+    #chatSendBtn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      background-color: #1f6feb;
+      color: white;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .suggestions {
+      margin: 6px 6px 2px 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .suggestions button {
+      border-radius: 999px;
+      border: 1px solid #30363d;
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
+    body.light .suggestions button {
+      background: #ffffff;
+      color: #000000;
+      border-color: #ccc;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .theme-toggle {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body class="dark">
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="top-bar">
+      <div>
+        <h2 style="margin: 0; font-size: 1.1rem;">LLM Control Panel</h2>
+        <small style="color:#9ca3af;">Transition & Risk Comparison</small>
+      </div>
+      <div class="theme-toggle" onclick="toggleTheme()">Toggle Theme</div>
+    </div>
+
+    <label for="projectSelect">Project</label>
+    <select id="projectSelect">
+      <option>Global Payments Platform – IT Transition Program</option>
+      <option>CRM Transition - Europe</option>
+      <option>Data Center Migration - APAC</option>
+      <option>SAP Rollout - Global</option>
+    </select>
+
+    <label for="questionInput">Question</label>
+    <textarea id="questionInput" placeholder="Ask about risks, KT, transition process..."></textarea>
+
+    <label for="llm1Select">LLM #1</label>
+    <select id="llm1Select">
+      <option value="azure/genailab-maas-gpt-35-turbo">GPT-3.5 Turbo</option>
+      <option value="azure/genailab-maas-gpt-4o">GPT-4o</option>
+      <option value="azure/genailab-maas-gpt-4o-mini">GPT-4o Mini</option>
+      <option value="azure_ai/genailab-maas-DeepSeek-V3-0324" selected>DeepSeek V3</option>
+      <option value="azure_ai/genailab-maas-DeepSeek-R1">DeepSeek R1 (Reasoning)</option>
+      <option value="azure_ai/genailab-maas-Llama-3.2-90B-Vision-Instruct">Llama 3.2 90B Vision</option>
+      <option value="azure_ai/genailab-maas-Llama-3.3-70B-Instruct">Llama 3.3 70B</option>
+      <option value="azure_ai/genailab-maas-Llama-4-Maverick-17B-128E-Instruct-FP8">Llama 4 Maverick 17B</option>
+      <option value="azure_ai/genailab-maas-Phi-3.5-vision-instruct">Phi 3.5 Vision</option>
+      <option value="azure_ai/genailab-maas-Phi-4-reasoning">Phi 4 Reasoning</option>
+    </select>
+
+    <label for="llm2Select">LLM #2</label>
+    <select id="llm2Select">
+      <option value="azure/genailab-maas-gpt-35-turbo">GPT-3.5 Turbo</option>
+      <option value="azure/genailab-maas-gpt-4o" selected>GPT-4o</option>
+      <option value="azure/genailab-maas-gpt-4o-mini">GPT-4o Mini</option>
+      <option value="azure_ai/genailab-maas-DeepSeek-V3-0324">DeepSeek V3</option>
+      <option value="azure_ai/genailab-maas-DeepSeek-R1">DeepSeek R1 (Reasoning)</option>
+      <option value="azure_ai/genailab-maas-Llama-3.2-90B-Vision-Instruct">Llama 3.2 90B Vision</option>
+      <option value="azure_ai/genailab-maas-Llama-3.3-70B-Instruct">Llama 3.3 70B</option>
+      <option value="azure_ai/genailab-maas-Llama-4-Maverick-17B-128E-Instruct-FP8">Llama 4 Maverick 17B</option>
+      <option value="azure_ai/genailab-maas-Phi-3.5-vision-instruct">Phi 3.5 Vision</option>
+      <option value="azure_ai/genailab-maas-Phi-4-reasoning">Phi 4 Reasoning</option>
+    </select>
+
+    <label for="judgeLlmSelect">Judge LLM</label>
+    <select id="judgeLlmSelect">
+      <option value="azure_ai/genailab-maas-Phi-4-reasoning" selected>Phi 4 Reasoning</option>
+      <option value="azure/genailab-maas-gpt-4o">GPT-4o</option>
+      <option value="azure_ai/genailab-maas-DeepSeek-R1">DeepSeek R1 (Reasoning)</option>
+      <option value="azure_ai/genailab-maas-Llama-3.3-70B-Instruct">Llama 3.3 70B</option>
+    </select>
+
+    <button class="btn" onclick="runComparison()">Run LLM Comparison</button>
+    <button class="btn secondary" onclick="runJudge()">Run Judge on Above</button>
+    <button class="btn secondary" onclick="runWorkflow()">Run Transition Workflow (4 Agents)</button>
+
+    <div id="errorBox" class="error-message"></div>
+  </div>
+
+  <!-- MAIN PANEL -->
+  <div class="main">
+    <h1>AI Transition Management & Risk Tracking</h1>
+    <p style="color:#9ca3af; font-size:0.9rem;">
+      Compare LLMs, run multi-agent transition workflow, and use the chatbot for interactive KT & risk Q&A.
+    </p>
+
+    <!-- LLM COMPARISON RESULTS -->
+    <div class="result-container">
+      <div class="result-box">
+        <h2>LLM #1 Output</h2>
+        <pre id="llm1Output">Run comparison to see LLM #1 response here.</pre>
+      </div>
+      <div class="result-box">
+        <h2>LLM #2 Output</h2>
+        <pre id="llm2Output">Run comparison to see LLM #2 response here.</pre>
+      </div>
+    </div>
+
+    <h2 class="section-title">Judge Decision</h2>
+    <div class="result-box">
+      <pre id="judgeOutput">Run judge after comparison to see which answer is better and why.</pre>
+    </div>
+
+    <!-- WORKFLOW (LANGGRAPH) RESULTS -->
+    <h2 class="section-title">Transition Workflow (LangGraph Agents)</h2>
+    <div class="workflow-grid">
+      <div class="result-box">
+        <h2>Project Agent</h2>
+        <pre id="wfProject">Run workflow to see project analysis.</pre>
+      </div>
+      <div class="result-box">
+        <h2>Risk Agent</h2>
+        <pre id="wfRisk">Run workflow to see risk analysis.</pre>
+      </div>
+      <div class="result-box">
+        <h2>Comms Agent</h2>
+        <pre id="wfComms">Run workflow to see communication insights.</pre>
+      </div>
+      <div class="result-box">
+        <h2>Supervisor Agent</h2>
+        <pre id="wfSupervisor">Run workflow to see final transition summary.</pre>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FLOATING CHATBOT -->
+<button id="chatbotButton">💬</button>
+
+<div id="chatWindow">
+  <div id="chatHeader">Transition Chatbot</div>
+  <div id="chatBody"></div>
+  <div id="chatInputArea">
+    <input id="chatMessage" placeholder="Ask chatbot…" />
+    <button id="chatSendBtn" type="button">Send</button>
+  </div>
+</div>
+
+<script>
+  const API_BASE = ""; // same origin (FastAPI serves this HTML)
+
+  function setError(msg) {
+    document.getElementById("errorBox").textContent = msg || "";
+  }
+
+  function toggleTheme() {
+    const b = document.body;
+    if (b.classList.contains("dark")) {
+      b.classList.remove("dark");
+      b.classList.add("light");
+    } else {
+      b.classList.remove("light");
+      b.classList.add("dark");
+    }
+  }
+
+  // Build a combined prompt including project context + question
+  function buildPrompt() {
+    const project = document.getElementById("projectSelect").value.trim();
+    const question = document.getElementById("questionInput").value.trim();
+    return `Project: ${project}\n\nQuestion: ${question}`;
+  }
+
+  async function runComparison() {
+    setError("");
+    const question = document.getElementById("questionInput").value.trim();
+    const model1 = document.getElementById("llm1Select").value;
+    const model2 = document.getElementById("llm2Select").value;
+
+    if (!question) {
+      setError("Please enter a question.");
+      return;
+    }
+
+    document.getElementById("llm1Output").textContent = "Running comparison for LLM #1...";
+    document.getElementById("llm2Output").textContent = "Running comparison for LLM #2...";
+    document.getElementById("judgeOutput").textContent = "Judge result will appear here after you click 'Run Judge on Above'.";
+
+    const prompt = buildPrompt();
+
+    try {
+      const resp = await fetch(`${API_BASE}/mcp/invoke`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tool: "compare",
+          model: model1,
+          input: prompt,
+          extra: { model2: model2 }
+        })
+      });
+
+      if (!resp.ok) {
+        const text = await resp.text();
+        setError("Compare tool error: " + text);
+        return;
+      }
+
+      const data = await resp.json();
+      document.getElementById("llm1Output").textContent = data.answer_1 || "[No answer from LLM #1]";
+      document.getElementById("llm2Output").textContent = data.answer_2 || "[No answer from LLM #2]";
+    } catch (err) {
+      console.error(err);
+      setError("Failed to contact backend for comparison.");
+    }
+  }
+
+  async function runJudge() {
+    setError("");
+    const question = document.getElementById("questionInput").value.trim();
+    const judgeModel = document.getElementById("judgeLlmSelect").value;
+
+    if (!question) {
+      setError("Please enter a question before running judge.");
+      return;
+    }
+
+    const ans1 = document.getElementById("llm1Output").textContent.trim();
+    const ans2 = document.getElementById("llm2Output").textContent.trim();
+
+    if (!ans1 || !ans2 || ans1.startsWith("Run comparison")) {
+      setError("Run LLM comparison first to generate answers.");
+      return;
+    }
+
+    document.getElementById("judgeOutput").textContent = "Running judge model...";
+
+    const prompt = buildPrompt();
+
+    try {
+      const resp = await fetch(`${API_BASE}/mcp/invoke`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tool: "judge",
+          model: judgeModel,
+          input: prompt,
+          extra: {
+            answer_1: ans1,
+            answer_2: ans2
+          }
+        })
+      });
+
+      if (!resp.ok) {
+        const text = await resp.text();
+        setError("Judge tool error: " + text);
+        return;
+      }
+
+      const data = await resp.json();
+      document.getElementById("judgeOutput").textContent = data.comparison || "[No judge output]";
+    } catch (err) {
+      console.error(err);
+      setError("Failed to contact backend for judge.");
+    }
+  }
+
+  async function runWorkflow() {
+    setError("");
+    const question = document.getElementById("questionInput").value.trim();
+    const model = document.getElementById("llm1Select").value; // use LLM1 for workflow by default
+
+    if (!question) {
+      setError("Please enter a question before running workflow.");
+      return;
+    }
+
+    document.getElementById("wfProject").textContent = "Running Project Agent...";
+    document.getElementById("wfRisk").textContent = "Running Risk Agent...";
+    document.getElementById("wfComms").textContent = "Running Comms Agent...";
+    document.getElementById("wfSupervisor").textContent = "Running Supervisor Agent...";
+
+    const prompt = buildPrompt();
+
+    try {
+      const resp = await fetch(`${API_BASE}/mcp/invoke`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tool: "workflow",
+          model: model,
+          input: prompt
+        })
+      });
+
+      if (!resp.ok) {
+        const text = await resp.text();
+        setError("Workflow tool error: " + text);
+        return;
+      }
+
+      const data = await resp.json();
+      document.getElementById("wfProject").textContent = data.project_agent || "[No Project Agent output]";
+      document.getElementById("wfRisk").textContent = data.risk_agent || "[No Risk Agent output]";
+      document.getElementById("wfComms").textContent = data.comms_agent || "[No Comms Agent output]";
+      document.getElementById("wfSupervisor").textContent = data.supervisor || "[No Supervisor Agent output]";
+    } catch (err) {
+      console.error(err);
+      setError("Failed to contact backend for workflow.");
+    }
+  }
+
+  // ---------------- CHATBOT LOGIC ----------------
+
+  const chatButton = document.getElementById("chatbotButton");
+  const chatWindow = document.getElementById("chatWindow");
+  const chatBody = document.getElementById("chatBody");
+  const chatInput = document.getElementById("chatMessage");
+  const chatSendBtn = document.getElementById("chatSendBtn");
+
+  function toggleChat() {
+    if (chatWindow.style.display === "flex") {
+      chatWindow.style.display = "none";
+    } else {
+      chatWindow.style.display = "flex";
+      chatInput.focus();
+    }
+  }
+
+  chatButton.addEventListener("click", toggleChat);
+
+  function appendMessage(role, text) {
+    const div = document.createElement("div");
+    div.className = (role === "user") ? "msg-user" : "msg-bot";
+    div.textContent = text;
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function appendSuggestions(suggestions) {
+    if (!suggestions || !suggestions.length) return;
+    const container = document.createElement("div");
+    container.className = "suggestions";
+    suggestions.forEach(q => {
+      const btn = document.createElement("button");
+      btn.textContent = q;
+      btn.onclick = () => {
+        chatInput.value = q;
+        sendChat();
+      };
+      container.appendChild(btn);
+    });
+    chatBody.appendChild(container);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  async function sendChat() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    appendMessage("user", text);
+    chatInput.value = "";
+
+    // Use LLM1 as chatbot model hint
+    const llm1Model = document.getElementById("llm1Select").value;
+
+    try {
+      const resp = await fetch(`${API_BASE}/chatbot`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "message=" + encodeURIComponent(text) + "&llm1=" + encodeURIComponent(llm1Model)
+      });
+
+      if (!resp.ok) {
+        const t = await resp.text();
+        appendMessage("bot", "Chatbot error: " + t);
+        return;
+      }
+
+      const data = await resp.json();
+      appendMessage("bot", data.answer || "[No response]");
+      appendSuggestions(data.suggestions || []);
+    } catch (err) {
+      console.error(err);
+      appendMessage("bot", "Failed to contact chatbot backend.");
+    }
+  }
+
+  chatSendBtn.addEventListener("click", sendChat);
+  chatInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendChat();
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+{
+  "project_name": "Global Payments Platform – IT Transition Program",
+  "transition_phase": "KT + Shadow Support",
+  "customer_industry": "Banking & Financial Services",
+
+  "milestones": [
+    {
+      "name": "Scope Finalization",
+      "status": "Completed",
+      "notes": "High-level application inventory validated with customer architects."
+    },
+    {
+      "name": "KT Delivery – Wave 1",
+      "status": "In Progress",
+      "notes": "SME bandwidth issues causing rescheduling of 20% sessions."
+    },
+    {
+      "name": "Hands-on Environment Access",
+      "status": "Delayed",
+      "notes": "Pending network approvals; expected delay ~5 days."
+    },
+    {
+      "name": "Shadow Support Start",
+      "status": "Upcoming",
+      "notes": "Readiness dependent on KT completion rate and documentation sign-off."
+    }
+  ],
+
+  "environments": {
+    "dev_environment": {
+      "status": "Ready",
+      "notes": "Development environment is stable and available."
+    },
+    "qa_environment": {
+      "status": "Pending Access",
+      "notes": "Access requests submitted; approval not finalized."
+    },
+    "preprod_environment": {
+      "status": "Blocked",
+      "notes": "Network team pending firewall rule updates."
+    }
+  },
+
+  "teams": {
+    "onshore_smes": [
+      {"name": "Anil Sharma", "role": "Payments SME", "availability": "Partial"},
+      {"name": "Ritu K", "role": "Batch Processing SME", "availability": "Overloaded"}
+    ],
+    "offshore_team": [
+      {"name": "Vivek", "role": "KT Lead"},
+      {"name": "Manasa", "role": "Functional Analyst"},
+      {"name": "Arjun", "role": "Tech Lead"}
+    ],
+    "customer_team": [
+      {"name": "David", "role": "Customer Solution Architect"},
+      {"name": "Maria", "role": "Operations Manager"}
+    ]
+  },
+
+  "kt_progress": {
+    "total_sessions_planned": 42,
+    "sessions_completed": 26,
+    "completion_rate": "62%",
+    "pending_clarifications": 19,
+    "documentation_status": "30% draft, 40% outdated, 30% clean"
+  },
+
+  "dependencies": [
+    {
+      "name": "Batch Scheduler Access Setup",
+      "type": "Technical",
+      "status": "Pending",
+      "impact": "Required for hands-on KT of batch processes."
+    },
+    {
+      "name": "Firewall Rule Update",
+      "type": "Network",
+      "status": "Delayed",
+      "impact": "Blocking Pre-Prod access for testing."
+    },
+    {
+      "name": "DB Read Replica Permission",
+      "type": "Database",
+      "status": "In Review",
+      "impact": "Needed for Log Analysis KT."
+    }
+  ],
+
+  "open_items": [
+    {
+      "item": "API documentation mismatch between customer and offshore teams.",
+      "impact": "Rework expected in understanding upstream/downstream dependencies."
+    },
+    {
+      "item": "Batch monitoring tool credentials not shared.",
+      "impact": "Shadow support readiness impacted."
+    },
+    {
+      "item": "Multiple CRQ tickets still not approved.",
+      "impact": "Environment readiness slipping by several days."
+    }
+  ],
+
+  "stakeholder_concerns": [
+    {
+      "role": "Customer Architect",
+      "concern": "KT depth not consistent across SME teams.",
+      "severity": "Medium"
+    },
+    {
+      "role": "Program Manager",
+      "concern": "Documentation quality insufficient for shadow support.",
+      "severity": "High"
+    }
+  ]
+}
